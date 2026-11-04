@@ -1,0 +1,17 @@
+{{ for block in likert_blocks }}
+  {{ if block.intro }}<p class="likert-intro">{{ block.intro }}</p>{{ endif }}
+  <table class="likert">
+    <tr>
+      <th class="item-col"></th>
+      {{ for anchor in block.anchors }}<th>{{ anchor|safe }}</th>{{ endfor }}
+    </tr>
+    {{ for field, label in block.rows }}
+    <tr>
+      <td class="item">{{ label }}{{ formfield_errors field }}</td>
+      {{ for v in C.LIKERT_7 }}
+      <td><input type="radio" name="{{ field }}" value="{{ v }}" required aria-label="{{ label }}: {{ v }}"></td>
+      {{ endfor }}
+    </tr>
+    {{ endfor }}
+  </table>
+{{ endfor }}

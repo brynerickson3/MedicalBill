@@ -1,0 +1,7 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Your experience{{ endblock }}
+{{ block content }}
+<p class="small-note">1 = not at all, 7 = extremely</p>
+{{ include_sibling 'Likert.html' }}
+{{ next_button }}
+{{ endblock }}

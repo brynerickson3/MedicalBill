@@ -1,0 +1,8 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Thank you{{ endblock }}
+{{ block content }}
+<p>Thank you for your time. Based on your answers, you will not continue to the main part of the study, but <b>you will still be paid for the time you spent</b>.</p>
+<p>Your completion code is <b>{{ code }}</b>. You will be sent back to Prolific in a few seconds.</p>
+<p><a href="{{ redirect_url }}">Click here if you are not redirected.</a></p>
+<script>setTimeout(function(){ window.location.href = "{{ redirect_url }}"; }, 4000);</script>
+{{ endblock }}

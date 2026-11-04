@@ -1,0 +1,21 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}About you (continued){{ endblock }}
+{{ block content }}
+{{ formfield 'age' }}
+{{ formfield 'gender' }}
+{{ formfield 'gender_self_describe' }}
+
+<div class="form-section">
+  <p class="likert-intro">Which of the following describe you? Select all that apply. (optional)</p>
+  <div class="checkbox-list">
+    {{ for field, label in race_options }}
+    <label><input type="checkbox" name="{{ field }}" value="1"> {{ label }}</label>
+    {{ endfor }}
+  </div>
+</div>
+
+<div class="form-section">
+{{ include_sibling 'Likert.html' }}
+</div>
+{{ next_button }}
+{{ endblock }}

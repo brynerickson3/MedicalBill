@@ -1,0 +1,8 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Quick check{{ endblock }}
+{{ block content }}
+<p>Please answer these two questions about the instructions.</p>
+{{ formfield 'comp_q1' }}
+{{ formfield 'comp_q2' }}
+{{ next_button }}
+{{ endblock }}

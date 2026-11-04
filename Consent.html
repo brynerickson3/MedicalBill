@@ -1,0 +1,19 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Information sheet and consent{{ endblock }}
+{{ block content }}
+<div class="placeholder">
+  <b>Placeholder — replace with your IRB-approved information sheet.</b> Keep the headings below, but use the approved wording.
+</div>
+<h5 class="mt-3">What this study involves</h5>
+<p>You will read a short scenario about a medical bill, communicate with the hospital about the bill, and then answer some questions about the experience and about yourself. The study takes about 15 minutes.</p>
+<h5>Payment</h5>
+<p>You will receive the base payment listed on Prolific. You can also earn a small bonus depending on decisions you make in the task.</p>
+<h5>Risks and benefits</h5>
+<p>[Risks and benefits as approved by the IRB.]</p>
+<h5>Your rights</h5>
+<p>Taking part is voluntary. You may stop at any time by closing this window, and you will be able to withdraw your data at the end of the study. We will not ask for your name.</p>
+<h5>Questions</h5>
+<p>[Researcher name, email, and IRB contact information.]</p>
+<div class="form-section">{{ formfield 'consent' }}</div>
+{{ next_button }}
+{{ endblock }}

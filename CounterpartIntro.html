@@ -1,0 +1,11 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}{{ cp_intro_heading }}{{ endblock }}
+{{ block content }}
+<div class="d-flex align-items-center gap-3 my-3" style="gap:14px">
+  {{ include_sibling 'Avatar.html' }}
+  <div><div style="font-weight:600">{{ cp_name }}</div><div class="small-note">{{ cp_subtitle }}</div></div>
+</div>
+<p>{{ cp_intro_text|safe }}</p>
+<p>On the next page, a message window will open. Type the amount you would like to pay, or accept the amount offered. You can view your itemized bill at any time using the button in the bottom-left corner.</p>
+{{ next_button }}
+{{ endblock }}

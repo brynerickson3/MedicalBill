@@ -1,0 +1,25 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}About you{{ endblock }}
+{{ block content }}
+{{ formfield 'education' }}
+{{ formfield 'parent_education' }}
+{{ formfield 'income' }}
+{{ formfield 'household_size' }}
+
+<div class="form-section">
+  <div class="ladder-wrap">
+    <div class="ladder" role="radiogroup" aria-label="Status ladder">
+      {{ for v in player_ladder_rungs }}
+      <label><input type="radio" name="ladder" value="{{ v }}" required> {{ v }}</label>
+      {{ endfor }}
+    </div>
+    <div class="ladder-text">
+      <p>Think of this ladder as representing where people stand in the United States.</p>
+      <p>At the <b>top</b> of the ladder (10) are the people who are the best off: those who have the most money, the most education, and the most respected jobs. At the <b>bottom</b> (1) are the people who are the worst off: those who have the least money, the least education, and the least respected jobs or no job.</p>
+      <p><b>Where would you place yourself on this ladder?</b> Click the rung that best represents where you think you stand.</p>
+      {{ formfield_errors 'ladder' }}
+    </div>
+  </div>
+</div>
+{{ next_button }}
+{{ endblock }}

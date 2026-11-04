@@ -1,0 +1,9 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Quick check — second try{{ endblock }}
+{{ block content }}
+<div class="lead-box">At least one answer was not correct. Here is the payment rule again:<br>
+You earn a bonus of {{ bonus_cents }} cents for every percentage point you save off the original bill, up to {{ bonus_cap }}. If you pay the full bill, you earn no bonus.</div>
+{{ formfield 'comp_q1_retry' }}
+{{ formfield 'comp_q2_retry' }}
+{{ next_button }}
+{{ endblock }}

@@ -1,0 +1,7 @@
+<table class="bill">
+  <caption>{{ hospital }} — Patient Statement</caption>
+  {{ for name, amount in bill_items }}
+  <tr><td>{{ name }}</td><td>{{ amount }}</td></tr>
+  {{ endfor }}
+  <tr class="total"><td>Balance due</td><td>{{ bill_fmt }}</td></tr>
+</table>

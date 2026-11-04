@@ -1,0 +1,21 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Instructions{{ endblock }}
+{{ block content }}
+<p>In this study you will read about a medical bill and then contact {{ cp_contact }} to try to lower the amount you owe.</p>
+{{ if tell_negotiable }}
+<div class="lead-box">Hospitals do allow patients to ask for a lower amount, and <b>this bill can be negotiated</b>.</div>
+{{ endif }}
+<h5 class="mt-4">How it works</h5>
+<ul>
+  <li>The hospital will tell you what you owe. You can <b>accept</b> the amount, or <b>suggest a lower amount</b> in dollars.</li>
+  <li>The hospital will reply to each suggestion. There are a limited number of exchanges, and the hospital will say when it is making its final offer.</li>
+  <li>When the hospital makes its final offer, you can accept it or decline it.</li>
+</ul>
+<h5 class="mt-4">Your payment</h5>
+<ul>
+  <li>You will receive your base payment of <b>{{ base_pay }}</b>.</li>
+  <li>You will also earn a <b>bonus of {{ bonus_cents }} cents for every percentage point you save</b> off the original bill, up to {{ bonus_cap }}. For example, saving 25% of the bill earns {{ example_bonus }}.</li>
+  <li>If you do not reach an agreement, you pay the full bill and earn no bonus.</li>
+</ul>
+{{ next_button }}
+{{ endblock }}

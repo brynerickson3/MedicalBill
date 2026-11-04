@@ -1,0 +1,9 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Your situation{{ endblock }}
+{{ block content }}
+<p>Imagine you went to a hospital emergency room last month after a fall. You were examined, treated, and sent home the same day.</p>
+<p>Your insurance has paid what it will cover, and {{ hospital }} has now sent you a bill for the remaining balance: <b>{{ bill_fmt }}</b>.</p>
+{{ include_sibling 'BillTable.html' }}
+<p>On the next page you will answer two short questions to check the instructions are clear.</p>
+{{ next_button }}
+{{ endblock }}

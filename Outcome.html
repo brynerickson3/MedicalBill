@@ -1,0 +1,17 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Result{{ endblock }}
+{{ block content }}
+{{ if player.agreement }}
+<p>You reached an agreement on your bill.</p>
+{{ else }}
+<p>You declined the final offer, so the full bill remains due.</p>
+{{ endif }}
+<div class="outcome-grid">
+  <div><div class="label">Original bill</div><div class="outcome-figure">{{ bill_fmt }}</div></div>
+  <div><div class="label">Final amount</div><div class="outcome-figure">{{ final_fmt }}</div></div>
+  <div><div class="label">Saved</div><div class="outcome-figure">{{ player.pct_saved }}%</div></div>
+  <div><div class="label">Your bonus</div><div class="outcome-figure">{{ bonus_fmt }}</div></div>
+</div>
+<p>Next, we will ask you some questions about the task and about yourself.</p>
+{{ next_button }}
+{{ endblock }}

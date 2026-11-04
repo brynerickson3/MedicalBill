@@ -1,0 +1,6 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Your experience (continued){{ endblock }}
+{{ block content }}
+{{ include_sibling 'Likert.html' }}
+{{ next_button }}
+{{ endblock }}

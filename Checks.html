@@ -1,0 +1,8 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}About the task{{ endblock }}
+{{ block content }}
+{{ formfield 'mc_counterpart' }}
+{{ include_sibling 'Likert.html' }}
+{{ formfield 'study_guess' }}
+{{ next_button }}
+{{ endblock }}

@@ -1,0 +1,17 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Work, insurance, and money{{ endblock }}
+{{ block content }}
+{{ formfield 'employment_type' }}
+{{ formfield 'occupation' }}
+{{ formfield 'union_covered' }}
+{{ formfield 'could_negotiate_pay' }}
+{{ formfield 'insurance' }}
+{{ formfield 'prior_bill_dispute' }}
+<div class="form-section">
+<p class="likert-intro">Three quick questions about money. Please answer without looking anything up.</p>
+{{ formfield 'fl_interest' }}
+{{ formfield 'fl_inflation' }}
+{{ formfield 'fl_risk' }}
+</div>
+{{ next_button }}
+{{ endblock }}

@@ -1,0 +1,183 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}Your bill{{ endblock }}
+{{ block content }}
+
+<div class="chat-card">
+  <div class="chat-header">
+    {{ include_sibling 'Avatar.html' }}
+    <div>
+      <div class="name">{{ cp_name }}</div>
+      <div class="sub">{{ cp_subtitle }}</div>
+    </div>
+  </div>
+
+  <div class="chat-log" id="chat-log" aria-live="polite"></div>
+
+  <div class="chat-controls" id="controls">
+    <div class="row-flex" id="counter-row">
+      <div class="money-input">
+        <span>$</span>
+        <input id="counter-input" type="number" inputmode="numeric" min="1" step="1" placeholder="Amount" disabled>
+      </div>
+      <button type="button" class="btn btn-primary" id="btn-counter" disabled>Send counteroffer</button>
+      <span class="or-divider">or</span>
+      <button type="button" class="btn btn-outline-success" id="btn-accept" disabled>Accept</button>
+    </div>
+    <div class="row-flex hidden" id="final-row">
+      <button type="button" class="btn btn-success" id="btn-accept-final" disabled>Accept</button>
+      <button type="button" class="btn btn-outline-secondary" id="btn-decline" disabled>Decline</button>
+    </div>
+    <div class="chat-error" id="chat-error"></div>
+  </div>
+
+  <div class="chat-controls hidden" id="done-row">
+    <p class="mb-2">The conversation has ended. Click <b>Next</b> to see your result.</p>
+    {{ next_button }}
+  </div>
+</div>
+
+<div class="bill-widget">
+  <div class="panel hidden" id="bill-panel">{{ include_sibling 'BillTable.html' }}</div>
+  <button type="button" class="toggle" id="bill-toggle" aria-expanded="false">
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" fill="none" stroke="#1d5c96" stroke-width="2"/><path d="M9 12h8M9 16h8M9 8h4" stroke="#1d5c96" stroke-width="2"/></svg>
+    Full bill
+  </button>
+</div>
+
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+(function () {
+  var log = document.getElementById('chat-log');
+  var input = document.getElementById('counter-input');
+  var btnCounter = document.getElementById('btn-counter');
+  var btnAccept = document.getElementById('btn-accept');
+  var btnAcceptFinal = document.getElementById('btn-accept-final');
+  var btnDecline = document.getElementById('btn-decline');
+  var counterRow = document.getElementById('counter-row');
+  var finalRow = document.getElementById('final-row');
+  var controls = document.getElementById('controls');
+  var doneRow = document.getElementById('done-row');
+  var errBox = document.getElementById('chat-error');
+
+  var TYPING_MS = js_vars.typing_delay_ms;  // identical in both conditions
+  var rendered = 0;       // number of messages already on screen
+  var state = null;
+  var shownAt = null;     // when the current offer became answerable
+  var waiting = false;
+
+  function bubble(actor, text) {
+    var row = document.createElement('div');
+    row.className = 'msg ' + actor;
+    var b = document.createElement('div');
+    b.className = 'bubble';
+    b.textContent = text;
+    row.appendChild(b);
+    log.appendChild(row);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function typingIndicator() {
+    var row = document.createElement('div');
+    row.className = 'msg hospital';
+    row.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+    log.appendChild(row);
+    log.scrollTop = log.scrollHeight;
+    return row;
+  }
+
+  function setEnabled(on) {
+    [input, btnCounter, btnAccept, btnAcceptFinal, btnDecline].forEach(function (el) { el.disabled = !on; });
+  }
+
+  function refreshControls() {
+    if (state.status === 'accepted' || state.status === 'declined') {
+      controls.classList.add('hidden');
+      doneRow.classList.remove('hidden');
+      return;
+    }
+    var label = 'Accept ' + state.current_offer_fmt;
+    btnAccept.textContent = label;
+    btnAcceptFinal.textContent = label;
+    btnDecline.textContent = 'Decline (full bill stays due)';
+    counterRow.classList.toggle('hidden', state.is_final);
+    finalRow.classList.toggle('hidden', !state.is_final);
+    setEnabled(true);
+    shownAt = performance.now();
+    if (!state.is_final) { input.value = ''; input.focus(); }
+  }
+
+  // Show new messages: participant bubbles at once, hospital bubbles after a typing pause.
+  function renderNew(messages, animate, done) {
+    if (rendered >= messages.length) { done(); return; }
+    var m = messages[rendered];
+    rendered += 1;
+    if (m.actor === 'hospital' && animate) {
+      var t = typingIndicator();
+      setTimeout(function () {
+        t.remove();
+        bubble(m.actor, m.text);
+        renderNew(messages, animate, done);
+      }, TYPING_MS);
+    } else {
+      bubble(m.actor, m.text);
+      renderNew(messages, animate, done);
+    }
+  }
+
+  window.liveRecv = function (data) {
+    waiting = false;
+    if (data.error) {
+      errBox.textContent = data.error;
+      setEnabled(true);
+      return;
+    }
+    errBox.textContent = '';
+    state = data;
+    setEnabled(false);
+    renderNew(data.messages, data.animate, refreshControls);
+  };
+
+  function rt() { return shownAt ? (performance.now() - shownAt) / 1000 : null; }
+
+  function send(payload) {
+    if (waiting) return;
+    waiting = true;
+    setEnabled(false);
+    payload.rt = rt();
+    liveSend(payload);
+  }
+
+  btnCounter.addEventListener('click', function () {
+    var raw = input.value.trim();
+    var v = Number(raw);
+    if (raw === '' || !Number.isInteger(v)) { errBox.textContent = 'Please enter a whole-dollar amount (no cents).'; return; }
+    if (v < 1) { errBox.textContent = 'Please enter an amount greater than $0.'; return; }
+    if (v >= state.current_offer) { errBox.textContent = 'Your counteroffer must be lower than the current offer of ' + state.current_offer_fmt + '.'; return; }
+    send({type: 'counter', amount: v});
+  });
+  btnAccept.addEventListener('click', function () { send({type: 'accept'}); });
+  btnAcceptFinal.addEventListener('click', function () { send({type: 'accept'}); });
+  btnDecline.addEventListener('click', function () { send({type: 'decline'}); });
+
+  // Enter in the amount box sends the counteroffer instead of submitting the page
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); btnCounter.click(); }
+  });
+  // block accidental page submission while negotiating
+  document.getElementById('form').addEventListener('submit', function (e) {
+    if (!state || state.status === 'in_progress' || state.status === 'not_started') e.preventDefault();
+  });
+
+  var billToggle = document.getElementById('bill-toggle');
+  var billPanel = document.getElementById('bill-panel');
+  billToggle.addEventListener('click', function () {
+    var open = billPanel.classList.toggle('hidden') === false;
+    billToggle.setAttribute('aria-expanded', open);
+  });
+
+  document.addEventListener('DOMContentLoaded', function () { liveSend({type: 'init'}); });
+})();
+</script>
+{{ endblock }}

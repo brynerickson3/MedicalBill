@@ -1,0 +1,16 @@
+{{ block styles }}<link rel="stylesheet" href="{{ static 'medbill/style.css' }}">{{ endblock }}
+{{ block title }}About this study{{ endblock }}
+{{ block content }}
+<div class="placeholder"><b>Placeholder — replace with your IRB-approved debriefing text.</b></div>
+<p class="mt-3">Thank you for taking part. Here is the full purpose of the study.</p>
+<p>We are studying whether people from different backgrounds negotiate medical bills differently, and whether it matters if the person on the other side is a named staff member or an anonymous billing department. Some people talked with "Jake Taylor, Case Manager" and others with "the Billing Department."</p>
+<p><b>The hospital's replies were not written by a real person.</b> They came from a computer script that followed the same fixed rule for everyone, in both versions. We did not tell you this at the start because knowing it could have changed how you approached the task. The bill and hospital were fictional.</p>
+<p>Your bonus was calculated exactly as described in the instructions.</p>
+<p>If you have questions, please contact [researcher name and email]. For questions about your rights as a participant, contact [IRB contact].</p>
+<div class="form-section">
+{{ formfield 'withdraw_data' }}
+<p class="small-note">Either way, you will be paid in full.</p>
+{{ formfield 'comments' }}
+</div>
+{{ next_button }}
+{{ endblock }}
