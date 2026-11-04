@@ -3,7 +3,7 @@
 An online negotiation task for studying whether socioeconomic status (SES) affects how people negotiate a medical bill, and whether that depends on who is on the other side: a **named case manager (Jake Taylor)** or an **anonymous billing department**. It is built in [oTree](https://www.otree.org) and set up to run through Prolific.
 
 ## What participants see (~15 min)
-Consent → Instructions & bonus rule → Scenario and itemized $5,200 ER bill → Comprehension check (one retry, then screened out with pay) → Counterpart intro → **Live chat negotiation** → Outcome → Manipulation and belief checks → Backlash and nervousness → Power, plus an embedded attention check → SES (education, parental education, income, household size, MacArthur ladder) → Work, insurance, financial literacy → Demographics and TIPI → Debrief with a withdrawal option → Redirect to Prolific.
+Consent → Instructions & bonus rule → Scenario and itemized $5,200 ER bill → Comprehension check (one retry, then screened out with pay) → Counterpart intro → **Negotiation** (named: an incoming phone call from an illustrated Jake, then a live call view with speech bubbles; anonymous: text notices from the Billing Department) → Outcome → Manipulation and belief checks → Backlash and nervousness → Power, plus an embedded attention check → SES (education, parental education, income, household size, MacArthur ladder) → Work, insurance, financial literacy → Demographics and TIPI → Debrief with a withdrawal option → Redirect to Prolific.
 
 ## Negotiation rules (identical in both conditions, never shown to participants)
 - The hospital opens at the full bill ($5,200). Each round the participant accepts the offer or makes a lower whole-dollar counteroffer.
@@ -12,6 +12,9 @@ Consent → Instructions & bonus rule → Scenario and itemized $5,200 ER bill �
 - Bonus = 2¢ per percentage point saved, capped at $1.50. No agreement means no bonus.
 
 All of these settings live in `settings.py` (`STUDY_DEFAULTS`). The counterpart's wording is in `medical_bill/script.py`.
+
+## Playable preview
+`preview/index.html` is a single-page version of the negotiation (same rules and wording, both conditions, no data saved). Open it in any browser to try the game without running oTree. If you change the wording in `medical_bill/script.py`, update the preview as well.
 
 ## Run locally
 ```bash

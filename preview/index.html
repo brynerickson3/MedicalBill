@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Medical Bill Negotiation — Playable Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#1f2933; --muted:#5f6b7a; --line:#d9dee5; --soft:#f4f6f9; --accent:#1d5c96; --ok:#1f7a4d; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Inter, system-ui, sans-serif; color:var(--ink); background:#fff; }
+  .topbar { background:#0f2a44; color:#dfe8f2; font-size:13px; padding:8px 16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .topbar b { color:#fff; }
+  .topbar button { background:transparent; color:#dfe8f2; border:1px solid #5a7898; border-radius:999px; padding:3px 10px; cursor:pointer; font:inherit; }
+  .topbar button.on { background:#fff; color:#0f2a44; border-color:#fff; }
+  .wrap { max-width:760px; margin:0 auto; padding:28px 18px 120px; }
+  h2 { font-size:1.55rem; font-weight:600; margin:0 0 14px; }
+  h5 { font-size:1.02rem; margin:22px 0 6px; }
+  p, li { line-height:1.55; }
+  .lead-box { background:var(--soft); border-left:4px solid var(--accent); padding:12px 16px; border-radius:6px; margin:14px 0; }
+  .btn { font:inherit; border-radius:8px; padding:8px 16px; cursor:pointer; border:1px solid transparent; }
+  .btn-primary { background:#0d6efd; color:#fff; }
+  .btn-accept { background:#fff; color:var(--ok); border-color:var(--ok); }
+  .btn-accept-solid { background:var(--ok); color:#fff; }
+  .btn-outline { background:#fff; color:#555; border-color:#999; }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .next { margin-top:18px; }
+  .bill { width:100%; max-width:440px; border-collapse:collapse; margin:10px 0 18px; font-variant-numeric:tabular-nums; }
+  .bill caption { caption-side:top; text-align:left; font-weight:600; padding-bottom:6px; }
+  .bill td { padding:7px 4px; border-bottom:1px solid var(--line); }
+  .bill td:last-child { text-align:right; }
+  .bill tr.total td { font-weight:700; border-top:2px solid var(--ink); border-bottom:none; }
+  .q { margin:16px 0; } .q label { display:block; margin:4px 0; cursor:pointer; }
+  .err { color:#b42318; font-size:.9rem; min-height:1.2em; margin-top:8px; }
+  .avatar { width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; background:#dfe6ee; }
+  .avatar.textic { border-radius:10px; background:#e7eef7; }
+  .msg.hospital { align-items:flex-end; gap:8px; }
+  .msg-icon { width:34px; height:34px; flex:none; display:flex; align-items:center; justify-content:center; }
+  .msg-icon svg { width:24px; height:24px; }
+  .msg-icon.person { border-radius:50%; background:#dfe6ee; }
+  .msg-icon.text { border-radius:8px; background:#e7eef7; }
+  .msg.hospital.person .bubble { position:relative; border-radius:16px; }
+  .msg.hospital.person .bubble::before { content:""; position:absolute; left:-7px; bottom:10px; width:12px; height:12px; background:#fff; border-left:1px solid var(--line); border-bottom:1px solid var(--line); transform:rotate(45deg); }
+  .msg.hospital.text .bubble { border-radius:6px; border-left:3px solid #4f6d8f; }
+  .avatar svg { width:30px; height:30px; }
+  .who { display:flex; gap:12px; align-items:center; margin:14px 0; }
+  .who .name { font-weight:600; } .who .sub { color:var(--muted); font-size:.85rem; }
+  .chat-card { border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+  .chat-header { display:flex; gap:12px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--line); }
+  .chat-log { background:var(--soft); padding:16px; min-height:300px; max-height:52vh; overflow-y:auto; }
+  .msg { display:flex; margin:8px 0; }
+  .bubble { max-width:78%; padding:10px 14px; border-radius:14px; white-space:pre-line; line-height:1.45; }
+  .msg.hospital .bubble { background:#fff; border:1px solid var(--line); border-bottom-left-radius:4px; }
+  .msg.participant { justify-content:flex-end; }
+  .msg.participant .bubble { background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+  .typing { display:inline-flex; gap:4px; padding:12px 14px; background:#fff; border:1px solid var(--line); border-radius:14px; }
+  .typing span { width:7px; height:7px; border-radius:50%; background:#9aa5b1; animation:blink 1.2s infinite; }
+  .typing span:nth-child(2){animation-delay:.2s} .typing span:nth-child(3){animation-delay:.4s}
+  @keyframes blink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+  .controls { padding:14px 16px; border-top:1px solid var(--line); }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .money { display:flex; align-items:center; border:1px solid #b8c2cc; border-radius:8px; overflow:hidden; }
+  .money span { padding:8px 10px; background:var(--soft); color:var(--muted); border-right:1px solid #b8c2cc; }
+  .money input { border:none; padding:8px 10px; width:140px; font:inherit; outline:none; }
+  .or { color:var(--muted); font-size:.85rem; }
+  .hidden { display:none !important; }
+  .bill-widget { position:fixed; left:16px; bottom:16px; z-index:20; }
+  .bill-widget .toggle { display:flex; gap:8px; align-items:center; border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 14px; box-shadow:0 2px 8px rgba(0,0,0,.12); font:inherit; font-size:.9rem; cursor:pointer; }
+  .bill-widget .panel { position:absolute; bottom:48px; left:0; width:300px; background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 14px; box-shadow:0 6px 20px rgba(0,0,0,.15); }
+  .bill-widget .bill { margin:0; font-size:.88rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:16px 0; }
+  .grid > div { background:var(--soft); border-radius:10px; padding:14px; }
+  .grid .label { color:var(--muted); font-size:.85rem; } .grid .fig { font-size:1.9rem; font-weight:700; font-variant-numeric:tabular-nums; }
+  .note { color:var(--muted); font-size:.9rem; }
+  table.log { border-collapse:collapse; font-size:.85rem; margin-top:8px; } table.log td, table.log th { border:1px solid var(--line); padding:4px 8px; text-align:right; } table.log th { background:var(--soft); }
+/* ===== Jake portrait (illustrated) ===== */
+.portrait-wrap { border-radius: 50%; overflow: hidden; background: #cfe3f5; }
+.portrait-wrap svg { width: 100%; height: 100%; display: block; }
+.avatar.portrait-wrap { width: 52px; height: 52px; }
+.jake-portrait .mouth-open { display: none; }
+.talking .jake-portrait .mouth-closed { display: none; }
+.talking .jake-portrait .mouth-open { display: inline; animation: talk .22s infinite alternate; transform-box: fill-box; transform-origin: center top; }
+@keyframes talk { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
+.jake-portrait .eyes { animation: blinkeyes 4.5s infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes blinkeyes { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+
+/* ===== Incoming call screen ===== */
+.incoming {
+  max-width: 380px; margin: 10px auto; padding: 34px 20px 30px; text-align: center; color: #fff;
+  border-radius: 28px; background: linear-gradient(180deg, #16324f 0%, #0d1f33 100%);
+  box-shadow: 0 10px 30px rgba(13,31,51,.35);
+}
+.incoming-label { font-size: .9rem; letter-spacing: .08em; text-transform: uppercase; color: #9fc2e6; margin-bottom: 22px; }
+.ring-wrap { position: relative; width: 150px; height: 150px; margin: 0 auto 18px; }
+.ring-wrap .portrait-wrap.big { position: absolute; inset: 0; border: 4px solid rgba(255,255,255,.85); }
+.ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #6fb1ef; animation: ringpulse 1.8s ease-out infinite; }
+.ring.r2 { animation-delay: .9s; }
+@keyframes ringpulse { from { transform: scale(1); opacity: .9; } to { transform: scale(1.55); opacity: 0; } }
+.incoming-name { font-size: 1.6rem; font-weight: 600; }
+.incoming-sub { color: #b9cde2; font-size: .92rem; margin-top: 4px; line-height: 1.4; }
+.answer-btn {
+  margin-top: 30px; width: 70px; height: 70px; border-radius: 50%; border: none; background: #22a55a;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  box-shadow: 0 0 0 0 rgba(34,165,90,.6); animation: answerpulse 1.4s infinite;
+}
+.answer-btn:disabled { opacity: .6; animation: none; }
+@keyframes answerpulse { 0% { box-shadow: 0 0 0 0 rgba(34,165,90,.6); } 100% { box-shadow: 0 0 0 18px rgba(34,165,90,0); } }
+.answer-label { margin-top: 8px; font-size: .9rem; color: #cfe0f1; }
+
+/* ===== In-call view ===== */
+.call-header {
+  display: flex; gap: 16px; align-items: center; padding: 16px 18px; color: #fff;
+  background: linear-gradient(90deg, #16324f, #1d5c96);
+}
+.call-portrait { width: 84px; height: 84px; flex: none; border: 3px solid rgba(255,255,255,.85); }
+.call-name { font-size: 1.25rem; font-weight: 600; line-height: 1.2; }
+.call-sub { color: #cfe0f1; font-size: .88rem; }
+.call-status { margin-top: 6px; font-size: .88rem; color: #e3eef8; font-variant-numeric: tabular-nums; }
+.live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #3ddc84; margin-right: 6px; animation: blink 1.4s infinite; }
+.live-dot.ended { background: #e5484d; animation: none; }
+.msg-icon.person { width: 38px; height: 38px; background: transparent; }
+.msg-icon.person .portrait-wrap { width: 38px; height: 38px; }
+
+.chat-card.call-card{border:none}
+.btn-answer-wrap{text-align:center}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span><b>Preview</b>: same rules and wording as the oTree study. No data is saved.</span>
+  <span>Counterpart:</span>
+  <button id="c-named">Jake (named)</button>
+  <button id="c-anonymous">Billing Dept (anonymous)</button>
+  <button id="restart">Restart</button>
+</div>
+<div class="wrap" id="app"></div>
+<div class="bill-widget hidden" id="bill-widget">
+  <div class="panel hidden" id="bill-panel"></div>
+  <button class="toggle" id="bill-toggle">
+    <svg width="16" height="16" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z" fill="none" stroke="#1d5c96" stroke-width="2"/><path d="M9 12h8M9 16h8M9 8h4" stroke="#1d5c96" stroke-width="2"/></svg>
+    Full bill</button>
+</div>
+
+<script>
+// ---------- settings (mirror settings.py) ----------
+const S = { bonusPerPoint: 0.02, bonusCap: 1.50, rate: 0.40, floorShare: 0.55, maxOffers: 4, base: 3.75, hospital: 'Riverside General Hospital', typingMs: 2200 };
+const ITEMS = [['Emergency room facility fee',2400],['Physician fee',900],['CT scan / test',1300],['Laboratory tests (blood)',350],['IV fluids and supplies',250]];
+const BILL = ITEMS.reduce((a,b)=>a+b[1],0);
+const FLOOR = Math.round(BILL*S.floorShare);
+const money = x => '$' + Math.round(x).toLocaleString('en-US');
+
+const CP = {
+  named: { name:'Jake Taylor', sub:'Case Manager, Patient Financial Services', icon:'person', sign:'– Jake', contact:'Jake, the case manager,',
+    heading:'You will be talking with Jake Taylor',
+    intro:`Your bill has been assigned to <b>Jake Taylor</b>, a case manager in ${S.hospital}'s Patient Financial Services office. Jake handles questions about patient balances.`,
+    m:{ opening:'Hello! This is Jake from Patient Financial Services. Please pay your outstanding balance of {a}, or tell me what you can pay.',
+        counter:["I've reviewed your request. I can lower your balance to {a}.","I've looked at your account again. I can bring your balance down to {a}."],
+        same:"I'm not able to go any lower than {a}.",
+        final:'My final offer is {a}. You can accept it, or decline and the full balance of {b} remains due.',
+        accepted:"Thank you. I've updated your account. Your new balance is {a}.",
+        declined:'Understood. The full balance of {b} remains due.' } },
+  anonymous: { name:'Billing Department', sub:S.hospital, icon:'text', sign:null, contact:"the hospital's billing office",
+    heading:'You will be contacting the Billing Department',
+    intro:`Questions about your bill are handled by <b>${S.hospital}'s Billing Department</b>, which manages patient balances.`,
+    m:{ opening:`Your balance due is {a}. Please pay ${S.hospital} in full or request a different amount.`,
+        counter:['We have reviewed your request. The balance can be lowered to {a}.','We have reviewed the account again. The balance can be reduced to {a}.'],
+        same:'The balance cannot be reduced below {a}.',
+        final:'The final offer is {a}. You may accept it, or decline, in which case the full balance of {b} remains due.',
+        accepted:'Thank you. The account has been updated. Your new balance is {a}.',
+        declined:'Understood. The full balance of {b} remains due.' } },
+};
+const AVATAR = {
+  get person() { return '<div class="avatar person portrait-wrap">' + PORTRAIT + '</div>'; },
+  person_old:'<div class="avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="4.2" fill="#6b7a8c"/><path d="M3.8 21c.6-4.4 4-7.2 8.2-7.2s7.6 2.8 8.2 7.2z" fill="#6b7a8c"/></svg></div>',
+  text:'<div class="avatar textic"><svg viewBox="0 0 24 24"><rect x="4" y="2.5" width="16" height="19" rx="2.5" fill="#4f6d8f"/><rect x="7.5" y="7" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="11" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="15" width="6" height="1.8" rx=".9" fill="#fff"/></svg></div>'
+};
+const PORTRAIT = '<svg class="jake-portrait" viewBox="0 0 120 120" role="img" aria-label="Jake Taylor">  <g>    <rect width="120" height="120" fill="#cfe3f5"/>    <!-- shoulders / shirt -->    <path d="M14 120c2-22 20-32 46-32s44 10 46 32z" fill="#2f5d8a"/>    <path d="M48 88l12 14 12-14-6-3-6 7-6-7z" fill="#ffffff"/>    <rect x="70" y="96" width="12" height="15" rx="2" fill="#f4f6f9" stroke="#9fb3c8"/>    <rect x="72.5" y="99" width="7" height="2" rx="1" fill="#2f5d8a"/>    <path d="M60 92l12 6" stroke="#9fb3c8" stroke-width="1.5"/>    <!-- neck -->    <rect x="52" y="70" width="16" height="18" rx="6" fill="#d9a07a"/>    <!-- ears -->    <ellipse cx="37.5" cy="53" rx="4.5" ry="6.5" fill="#d9a07a"/>    <ellipse cx="82.5" cy="53" rx="4.5" ry="6.5" fill="#d9a07a"/>    <!-- head -->    <ellipse cx="60" cy="51" rx="22.5" ry="25.5" fill="#e6b28c"/>    <!-- hair -->    <path d="M37 47c-1-17 10-25 23-25 14 0 25 7 24 24-4-8-10-11-17-12-7 4-19 6-30 13z" fill="#3b2a20"/>    <!-- brows -->    <path d="M45 43.5q5-3 10 0" stroke="#3b2a20" stroke-width="2.4" fill="none" stroke-linecap="round"/>    <path d="M65 43.5q5-3 10 0" stroke="#3b2a20" stroke-width="2.4" fill="none" stroke-linecap="round"/>    <!-- eyes (blink) -->    <g class="eyes">      <ellipse cx="50" cy="51" rx="2.6" ry="3.1" fill="#2a2a2a"/>      <ellipse cx="70" cy="51" rx="2.6" ry="3.1" fill="#2a2a2a"/>      <circle cx="51" cy="50" r=".9" fill="#fff"/><circle cx="71" cy="50" r=".9" fill="#fff"/>    </g>    <!-- nose -->    <path d="M60 54q-3 7 0 8.5q2 .5 3-.5" stroke="#b9805c" stroke-width="1.6" fill="none" stroke-linecap="round"/>    <!-- cheeks -->    <circle cx="45" cy="61" r="3.5" fill="#e99a86" opacity=".35"/>    <circle cx="75" cy="61" r="3.5" fill="#e99a86" opacity=".35"/>    <!-- mouth: closed smile / open (talking) -->    <path class="mouth-closed" d="M52 66q8 6 16 0" stroke="#8a4a3a" stroke-width="2.2" fill="none" stroke-linecap="round"/>    <g class="mouth-open">      <path d="M52 65.5q8 9 16 0z" fill="#7a3a2e"/>      <path d="M55.5 69q4.5 2.5 9 0" stroke="#e58b84" stroke-width="2.2" fill="none" stroke-linecap="round"/>    </g>  </g></svg>';
+const ICON_SVG = { person: '<div class="portrait-wrap" style="width:38px;height:38px">' + PORTRAIT + '</div>', _old: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="4.2" fill="#6b7a8c"/><path d="M3.8 21c.6-4.4 4-7.2 8.2-7.2s7.6 2.8 8.2 7.2z" fill="#6b7a8c"/></svg>', text: '<svg viewBox="0 0 24 24"><rect x="4" y="2.5" width="16" height="19" rx="2.5" fill="#4f6d8f"/><rect x="7.5" y="7" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="11" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="15" width="6" height="1.8" rx=".9" fill="#fff"/></svg>' };
+const hospitalRow = () => { const k = CP[cond].icon; const r = document.createElement('div'); r.className = 'msg hospital ' + k;
+  const i = document.createElement('div'); i.className = 'msg-icon ' + k; i.innerHTML = ICON_SVG[k]; r.appendChild(i); return r; };
+const billTable = () => `<table class="bill"><caption>${S.hospital} — Patient Statement</caption>${ITEMS.map(([n,a])=>`<tr><td>${n}</td><td>${money(a)}</td></tr>`).join('')}<tr class="total"><td>Balance due</td><td>${money(BILL)}</td></tr></table>`;
+const bonusFor = pct => Math.min(S.bonusCap, Math.round(pct*S.bonusPerPoint*100)/100);
+const roundHalfUp = x => Math.floor(x + 0.5);
+
+// ---------- state ----------
+let cond, st;
+function reset(c) {
+  if (st && st.timer) clearInterval(st.timer);
+  cond = c || (Math.random() < .5 ? 'named' : 'anonymous');
+  st = { offers:[], counters:[], msgs:[], status:'in_progress', current:BILL, tries:0 };
+  document.getElementById('c-named').classList.toggle('on', cond==='named');
+  document.getElementById('c-anonymous').classList.toggle('on', cond==='anonymous');
+  document.getElementById('bill-widget').classList.add('hidden');
+  page('consent');
+}
+const say = (key, a, i=0) => {
+  let t = CP[cond].m[key]; if (Array.isArray(t)) t = t[i % t.length];
+  t = t.replace('{a}', money(a ?? 0)).replace('{b}', money(BILL));
+  return CP[cond].sign ? t + '\n' + CP[cond].sign : t;
+};
+
+const app = document.getElementById('app');
+function page(name) { window.scrollTo(0,0); PAGES[name](); }
+const nextBtn = (to, check) => { const b = document.createElement('button'); b.className='btn btn-primary next'; b.textContent='Next';
+  b.onclick = () => { if (!check || check()) page(to); }; app.appendChild(b); };
+
+const PAGES = {
+  consent() {
+    app.innerHTML = `<h2>Information sheet and consent</h2>
+      <p>You will read a short scenario about a medical bill, communicate with the hospital about the bill, and then answer some questions. The study takes about 15 minutes.</p>
+      <p class="note">(In the real study, the IRB-approved information sheet goes here.)</p>
+      <div class="q"><b>Do you agree to take part in this study?</b>
+        <label><input type="radio" name="consent" value="yes"> Yes, I agree to take part</label>
+        <label><input type="radio" name="consent" value="no"> No, I do not agree</label></div><div class="err" id="err"></div>`;
+    nextBtn('instructions', () => {
+      const v = (document.querySelector('input[name=consent]:checked')||{}).value;
+      if (!v) { document.getElementById('err').textContent = 'Please choose an option.'; return false; }
+      if (v === 'no') { app.innerHTML = '<h2>Thank you</h2><p>You chose not to take part, so the study has ended. Please return to Prolific and click "Return submission".</p>'; return false; }
+      return true; });
+  },
+  instructions() {
+    app.innerHTML = `<h2>Instructions</h2>
+      <p>In this study you will read about a medical bill and then contact ${CP[cond].contact} to try to lower the amount you owe.</p>
+      <div class="lead-box">Hospitals do allow patients to ask for a lower amount, and <b>this bill can be negotiated</b>.</div>
+      <h5>How it works</h5><ul>
+      <li>The hospital will tell you what you owe. You can <b>accept</b> the amount, or <b>suggest a lower amount</b> in dollars.</li>
+      <li>The hospital will reply to each suggestion. There are a limited number of exchanges, and the hospital will say when it is making its final offer.</li>
+      <li>When the hospital makes its final offer, you can accept it or decline it.</li></ul>
+      <h5>Your payment</h5><ul>
+      <li>You will receive your base payment of <b>$${S.base.toFixed(2)}</b>.</li>
+      <li>You will also earn a <b>bonus of ${S.bonusPerPoint*100} cents for every percentage point you save</b> off the original bill, up to $${S.bonusCap.toFixed(2)}. For example, saving 25% of the bill earns $${bonusFor(25).toFixed(2)}.</li>
+      <li>If you do not reach an agreement, you pay the full bill and earn no bonus.</li></ul>`;
+    nextBtn('scenario');
+  },
+  scenario() {
+    app.innerHTML = `<h2>Your situation</h2>
+      <p>Imagine you went to a hospital emergency room last month after a fall. You were examined, treated, and sent home the same day.</p>
+      <p>Your insurance has paid what it will cover, and ${S.hospital} has now sent you a bill for the remaining balance: <b>${money(BILL)}</b>.</p>${billTable()}
+      <p>On the next page you will answer two short questions to check the instructions are clear.</p>`;
+    nextBtn('comprehension');
+  },
+  comprehension() {
+    const retry = st.tries === 1;
+    app.innerHTML = `<h2>Quick check${retry ? ' — second try' : ''}</h2>
+      ${retry ? `<div class="lead-box">At least one answer was not correct. You earn a bonus of ${S.bonusPerPoint*100} cents for every percentage point you save off the original bill, up to $${S.bonusCap.toFixed(2)}. If you pay the full bill, you earn no bonus.</div>` : ''}
+      <div class="q"><b>1. What do you earn a bonus for?</b>
+        <label><input type="radio" name="q1" value="saving"> Lowering the amount you owe on the bill</label>
+        <label><input type="radio" name="q1" value="speed"> Finishing the task quickly</label>
+        <label><input type="radio" name="q1" value="rounds"> Making as many offers as possible</label>
+        <label><input type="radio" name="q1" value="nothing"> There is no bonus</label></div>
+      <div class="q"><b>2. What happens to your bonus if you accept the full bill?</b>
+        <label><input type="radio" name="q2" value="zero"> I earn no bonus</label>
+        <label><input type="radio" name="q2" value="half"> I earn half of the maximum bonus</label>
+        <label><input type="radio" name="q2" value="full"> I earn the maximum bonus</label></div><div class="err" id="err"></div>`;
+    nextBtn('intro', () => {
+      const a = (document.querySelector('input[name=q1]:checked')||{}).value, b = (document.querySelector('input[name=q2]:checked')||{}).value;
+      if (!a || !b) { document.getElementById('err').textContent = 'Please answer both questions.'; return false; }
+      if (a === 'saving' && b === 'zero') return true;
+      st.tries += 1;
+      if (st.tries >= 2) { app.innerHTML = '<h2>Thank you</h2><p>Based on your answers, you will not continue to the main part of the study, but you will still be paid for the time you spent. (In the real study, this sends you back to Prolific with a separate code.)</p>'; return false; }
+      page('comprehension'); return false; });
+  },
+  intro() {
+    const c = CP[cond];
+    app.innerHTML = `<h2>${c.heading}</h2><div class="who">${AVATAR[c.icon]}<div><div class="name">${c.name}</div><div class="sub">${c.sub}</div></div></div>
+      <p>${c.intro}</p><p>${c.icon === 'person' ? 'On the next page, Jake will call you. Answer the call to talk with him about your bill. You will reply by typing your messages.' : 'On the next page, a message window will open. Type the amount you would like to pay, or accept the amount offered.'} You can view your itemized bill at any time using the button in the bottom-left corner.</p>`;
+    nextBtn('negotiate');
+  },
+  negotiate() {
+    const c = CP[cond];
+    const CALL = c.icon === 'person';
+    const header = CALL
+      ? `<div class="call-header"><div class="portrait-wrap call-portrait" id="live-portrait">${PORTRAIT}</div><div><div class="call-name">${c.name}</div><div class="call-sub">${c.sub}</div><div class="call-status"><span class="live-dot" id="live-dot"></span><span id="call-status-text">On call</span> · <span id="call-timer">0:00</span></div></div></div>`
+      : `<div class="chat-header">${AVATAR[c.icon]}<div><div class="name" style="font-weight:600">${c.name}</div><div class="sub" style="color:var(--muted);font-size:.85rem">${c.sub}</div></div></div>`;
+    const incoming = CALL ? `<div class="incoming" id="incoming"><div class="incoming-label">Incoming call</div><div class="ring-wrap"><span class="ring r1"></span><span class="ring r2"></span><div class="portrait-wrap big">${PORTRAIT}</div></div><div class="incoming-name">${c.name}</div><div class="incoming-sub">${c.sub}<br>${S.hospital}</div><button class="answer-btn" id="answer"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z" fill="#fff"/></svg></button><div class="answer-label">Answer</div></div>` : '';
+    app.innerHTML = `<h2>Your bill</h2>${incoming}<div class="chat-card${CALL ? ' call-card hidden' : ''}" id="card">
+      ${header}
+      <div class="chat-log" id="log"></div>
+      <div class="controls" id="controls">
+        <div class="row" id="counter-row"><div class="money"><span>$</span><input id="amt" type="number" inputmode="numeric" min="1" step="1" placeholder="Amount"></div>
+          <button class="btn btn-primary" id="send">Send counteroffer</button><span class="or">or</span><button class="btn btn-accept" id="accept">Accept</button></div>
+        <div class="row hidden" id="final-row"><button class="btn btn-accept-solid" id="accept2">Accept</button><button class="btn btn-outline" id="decline">Decline (full bill stays due)</button></div>
+        <div class="err" id="err"></div></div>
+      <div class="controls hidden" id="done"><p style="margin:0 0 8px">The conversation has ended. Click <b>Next</b> to see your result.</p></div></div>`;
+    document.getElementById('bill-panel').innerHTML = billTable();
+    document.getElementById('bill-widget').classList.remove('hidden');
+    const log = document.getElementById('log'), amt = document.getElementById('amt'), err = document.getElementById('err');
+    const btns = ['amt','send','accept','accept2','decline'].map(id => document.getElementById(id));
+    const enable = on => btns.forEach(b => b.disabled = !on);
+    const bubble = (who, t) => { let r; if (who === 'hospital') r = hospitalRow(); else { r = document.createElement('div'); r.className = 'msg ' + who; } const b = document.createElement('div'); b.className='bubble'; b.textContent = t; r.appendChild(b); log.appendChild(r); log.scrollTop = log.scrollHeight; };
+    const lp = () => document.getElementById('live-portrait');
+    const talk = on => { if (!lp()) return; lp().classList.toggle('talking', on); const t = document.getElementById('call-status-text'); if (t.textContent !== 'Call ended') t.textContent = on ? 'Jake is speaking…' : 'On call'; };
+    const hospital = (t, after) => { enable(false); talk(true); const r = hospitalRow(); const ty = document.createElement('div'); ty.className='typing'; ty.innerHTML='<span></span><span></span><span></span>'; r.appendChild(ty); log.appendChild(r); log.scrollTop = log.scrollHeight;
+      setTimeout(() => { r.remove(); talk(false); bubble('hospital', t); after(); }, S.typingMs); };
+    const isFinal = () => st.offers.length >= S.maxOffers;
+    const ready = () => {
+      if (st.status !== 'in_progress') { if (CALL) { clearInterval(st.timer); document.getElementById('call-status-text').textContent = 'Call ended'; document.getElementById('live-dot').classList.add('ended'); document.querySelector('#done p').innerHTML = 'The call has ended. Click <b>Next</b> to see your result.'; } document.getElementById('controls').classList.add('hidden'); const d = document.getElementById('done'); d.classList.remove('hidden'); app.querySelector('#done').appendChild(Object.assign(document.createElement('button'), {className:'btn btn-primary', textContent:'Next', onclick:()=>page('outcome')})); return; }
+      document.getElementById('accept').textContent = document.getElementById('accept2').textContent = 'Accept ' + money(st.current);
+      document.getElementById('counter-row').classList.toggle('hidden', isFinal());
+      document.getElementById('final-row').classList.toggle('hidden', !isFinal());
+      enable(true); amt.value=''; if (!isFinal()) amt.focus();
+    };
+    const finish = accepted => { st.status = accepted ? 'accepted' : 'declined'; st.final = accepted ? st.current : BILL;
+      st.pct = Math.round(10000*(BILL-st.final)/BILL)/100; st.bonus = accepted ? bonusFor(st.pct) : 0; };
+
+    document.getElementById('send').onclick = () => {
+      const raw = amt.value.trim(), v = Number(raw);
+      if (raw === '' || !Number.isInteger(v)) { err.textContent = 'Please enter a whole-dollar amount (no cents).'; return; }
+      if (v < 1) { err.textContent = 'Please enter an amount greater than $0.'; return; }
+      if (v >= st.current) { err.textContent = 'Your counteroffer must be lower than the current offer of ' + money(st.current) + '.'; return; }
+      err.textContent = ''; st.counters.push(v); bubble('participant', 'I can pay ' + money(v) + '.');
+      const prev = st.current, next = Math.min(prev, Math.max(FLOOR, roundHalfUp(prev - S.rate*(prev - v))));
+      st.current = next; st.offers.push(next);
+      const t = isFinal() ? say('final', next) : next === prev ? say('same', next) : say('counter', next, st.offers.length - 2);
+      hospital(t, ready);
+    };
+    const accept = () => { bubble('participant', 'I accept ' + money(st.current) + '.'); finish(true); hospital(say('accepted', st.current), ready); };
+    document.getElementById('accept').onclick = accept; document.getElementById('accept2').onclick = accept;
+    document.getElementById('decline').onclick = () => { bubble('participant', 'I decline the offer.'); finish(false); hospital(say('declined'), ready); };
+    amt.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('send').click(); } });
+
+    st.offers = [BILL]; st.current = BILL;
+    enable(false);
+    const start = () => setTimeout(() => hospital(say('opening', BILL), ready), 300);
+    if (CALL) {
+      document.getElementById('answer').onclick = () => {
+        document.getElementById('incoming').classList.add('hidden'); document.getElementById('card').classList.remove('hidden');
+        const t0 = Date.now(), el = document.getElementById('call-timer');
+        clearInterval(st.timer); st.timer = setInterval(() => { const x = Math.floor((Date.now()-t0)/1000); el.textContent = Math.floor(x/60) + ':' + ('0'+x%60).slice(-2); }, 500);
+        start();
+      };
+    } else start();
+  },
+  outcome() {
+    document.getElementById('bill-widget').classList.add('hidden');
+    const rows = st.offers.map((o,i) => `<tr><td>${i+1}</td><td>${money(o)}</td><td>${st.counters[i] != null ? money(st.counters[i]) : '—'}</td></tr>`).join('');
+    app.innerHTML = `<h2>Result</h2><p>${st.status === 'accepted' ? 'You reached an agreement on your bill.' : 'You declined the final offer, so the full bill remains due.'}</p>
+      <div class="grid"><div><div class="label">Original bill</div><div class="fig">${money(BILL)}</div></div>
+      <div><div class="label">Final amount</div><div class="fig">${money(st.final)}</div></div>
+      <div><div class="label">Saved</div><div class="fig">${st.pct}%</div></div>
+      <div><div class="label">Your bonus</div><div class="fig">$${st.bonus.toFixed(2)}</div></div></div>
+      <p>In the real study, the survey comes next (manipulation checks, backlash, power, SES, demographics, debrief).</p>
+      <h5>What the study records from this round</h5>
+      <table class="log"><tr><th>Offer #</th><th>Hospital offer</th><th>Your counter</th></tr>${rows}</table>
+      <p class="note">Condition: ${cond} · First counteroffer: ${st.counters.length ? money(st.counters[0]) : 'none'} · Rounds to agreement: ${st.status === 'accepted' ? st.offers.length : 'no agreement'}</p>
+      <button class="btn btn-primary next" onclick="reset()">Play again (random condition)</button>`;
+  },
+};
+
+document.getElementById('c-named').onclick = () => reset('named');
+document.getElementById('c-anonymous').onclick = () => reset('anonymous');
+document.getElementById('restart').onclick = () => reset(cond);
+document.getElementById('bill-toggle').onclick = () => document.getElementById('bill-panel').classList.toggle('hidden');
+reset();
+</script>
+</body>
+</html>
