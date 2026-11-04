@@ -20,6 +20,10 @@ COUNTERPART = {
         'icon': 'person',
         'signoff': '– Jake',
         'intro_heading': 'You will be talking with Jake Taylor',
+        'next_page_text': (
+            'On the next page, Jake will call you. Answer the call to talk with him '
+            'about your bill. You will reply by typing your messages.'
+        ),
         'intro_text': (
             'Your bill has been assigned to <b>Jake Taylor</b>, a case manager in '
             '{hospital}\'s Patient Financial Services office. Jake handles '
@@ -32,6 +36,10 @@ COUNTERPART = {
         'icon': 'text',
         'signoff': None,
         'intro_heading': 'You will be contacting the Billing Department',
+        'next_page_text': (
+            'On the next page, a message window will open. Type the amount you would '
+            'like to pay, or accept the amount offered.'
+        ),
         'intro_text': (
             'Questions about your bill are handled by <b>{hospital}\'s Billing '
             'Department</b>, which manages patient balances.'

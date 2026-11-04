@@ -107,7 +107,8 @@ def call_live_method(method, case, group, **kwargs):
 
 def _negotiate(send, case):
 
-    state = send({'type': 'init'})
+    assert send({'type': 'peek'})['status'] == 'not_started'
+    state = send({'type': 'init', 'answer_sec': 2.5})
     assert state['current_offer'] == 5200
     assert state['messages'][0]['actor'] == 'hospital'
 

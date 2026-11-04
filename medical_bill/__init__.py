@@ -253,6 +253,7 @@ class Player(BasePlayer):
     pct_saved = models.FloatField(blank=True)
     bonus = models.FloatField(blank=True)
     hit_floor = models.BooleanField(blank=True, doc='Final amount equals the hidden floor')
+    call_answer_sec = models.FloatField(blank=True, doc='Named condition only: seconds before the participant answered Jake\'s call')
     neg_start_time = models.FloatField(blank=True)
     neg_end_time = models.FloatField(blank=True)
     neg_duration_sec = models.FloatField(blank=True)
@@ -468,6 +469,8 @@ def chat_state(player, animate=False, error=None):
         'is_final': player.n_offers >= max_offers(player),
         'animate': animate,
         'error': error,
+        'elapsed': round(time.time() - player.neg_start_time, 1) if player.field_maybe_none('neg_start_time') else 0,
+        'ended_elapsed': player.field_maybe_none('neg_duration_sec'),
     }
 
 
@@ -499,6 +502,10 @@ def live_negotiate(player: Player, data):
         if player.neg_status == 'not_started':
             player.neg_status = 'in_progress'
             player.neg_start_time = time.time()
+            try:
+                player.call_answer_sec = round(float(data['answer_sec']), 3) if data.get('answer_sec') is not None else None
+            except (TypeError, ValueError):
+                pass
             player.n_offers = 1
             player.current_offer = C.BILL
             player.offer_1 = C.BILL
@@ -583,6 +590,7 @@ def common_vars(player):
         cp_icon=info['icon'],
         cp_intro_heading=info['intro_heading'],
         cp_intro_text=info['intro_text'].format(hospital=hospital),
+        cp_next_text=info['next_page_text'],
         cp_contact=('Jake, the case manager,' if player.condition == 'named' else "the hospital's billing office"),
         hospital=hospital,
         bill_fmt=money(C.BILL),

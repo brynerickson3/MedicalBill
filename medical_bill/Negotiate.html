@@ -2,7 +2,34 @@
 {{ block title }}Your bill{{ endblock }}
 {{ block content }}
 
-<div class="chat-card">
+{{ if cp_icon == 'person' }}
+<!-- ============ NAMED CONDITION: Jake calls you ============ -->
+<div class="incoming hidden" id="incoming">
+  <div class="incoming-label">Incoming call</div>
+  <div class="ring-wrap">
+    <span class="ring r1"></span><span class="ring r2"></span>
+    <div class="portrait-wrap big">{{ include_sibling 'JakePortrait.html' }}</div>
+  </div>
+  <div class="incoming-name">{{ cp_name }}</div>
+  <div class="incoming-sub">{{ cp_subtitle }}<br>{{ hospital }}</div>
+  <button type="button" class="answer-btn" id="btn-answer">
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z" fill="#fff"/></svg>
+  </button>
+  <div class="answer-label">Answer</div>
+</div>
+
+<div class="chat-card call-card hidden" id="card">
+  <div class="call-header">
+    <div class="portrait-wrap call-portrait" id="live-portrait">{{ include_sibling 'JakePortrait.html' }}</div>
+    <div class="call-who">
+      <div class="call-name">{{ cp_name }}</div>
+      <div class="call-sub">{{ cp_subtitle }}</div>
+      <div class="call-status"><span class="live-dot" id="live-dot"></span><span id="call-status-text">On call</span> · <span id="call-timer">0:00</span></div>
+    </div>
+  </div>
+{{ else }}
+<!-- ============ ANONYMOUS CONDITION: text messages ============ -->
+<div class="chat-card" id="card">
   <div class="chat-header">
     {{ include_sibling 'Avatar.html' }}
     <div>
@@ -10,6 +37,7 @@
       <div class="sub">{{ cp_subtitle }}</div>
     </div>
   </div>
+{{ endif }}
 
   <div class="chat-log" id="chat-log" aria-live="polite"></div>
 
@@ -31,12 +59,12 @@
   </div>
 
   <div class="chat-controls hidden" id="done-row">
-    <p class="mb-2">The conversation has ended. Click <b>Next</b> to see your result.</p>
+    <p class="mb-2" id="done-text">The conversation has ended. Click <b>Next</b> to see your result.</p>
     {{ next_button }}
   </div>
 </div>
 
-<template id="msg-icon-template">{{ if cp_icon == 'person' }}<svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="4.2" fill="#6b7a8c"/><path d="M3.8 21c.6-4.4 4-7.2 8.2-7.2s7.6 2.8 8.2 7.2z" fill="#6b7a8c"/></svg>{{ else }}<svg viewBox="0 0 24 24"><rect x="4" y="2.5" width="16" height="19" rx="2.5" fill="#4f6d8f"/><rect x="7.5" y="7" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="11" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="15" width="6" height="1.8" rx=".9" fill="#fff"/></svg>{{ endif }}</template>
+<template id="msg-icon-template">{{ if cp_icon == 'person' }}<div class="portrait-wrap">{{ include_sibling 'JakePortrait.html' }}</div>{{ else }}<svg viewBox="0 0 24 24"><rect x="4" y="2.5" width="16" height="19" rx="2.5" fill="#4f6d8f"/><rect x="7.5" y="7" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="11" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="15" width="6" height="1.8" rx=".9" fill="#fff"/></svg>{{ endif }}</template>
 
 <div class="bill-widget">
   <div class="panel hidden" id="bill-panel">{{ include_sibling 'BillTable.html' }}</div>
@@ -51,7 +79,13 @@
 {{ block scripts }}
 <script>
 (function () {
+  var CALL = js_vars.icon === 'person';      // named condition = phone call with Jake
+  var ICON_KIND = js_vars.icon;
+  var ICON_HTML = document.getElementById('msg-icon-template').innerHTML;
+  var TYPING_MS = js_vars.typing_delay_ms;   // identical in both conditions
+
   var log = document.getElementById('chat-log');
+  var card = document.getElementById('card');
   var input = document.getElementById('counter-input');
   var btnCounter = document.getElementById('btn-counter');
   var btnAccept = document.getElementById('btn-accept');
@@ -62,16 +96,36 @@
   var controls = document.getElementById('controls');
   var doneRow = document.getElementById('done-row');
   var errBox = document.getElementById('chat-error');
+  var livePortrait = document.getElementById('live-portrait');
 
-  var TYPING_MS = js_vars.typing_delay_ms;  // identical in both conditions
-  var rendered = 0;       // number of messages already on screen
-  var state = null;
-  var shownAt = null;     // when the current offer became answerable
-  var waiting = false;
+  var rendered = 0, state = null, shownAt = null, waiting = false;
+  var pageLoadedAt = performance.now();
 
-  var ICON_KIND = js_vars.icon;  // 'person' (Jake) or 'text' (billing system)
-  var ICON_HTML = document.getElementById('msg-icon-template').innerHTML;
+  // ---------- call timer (named condition only) ----------
+  var timerStart = null, timerHandle = null;
+  function fmt(sec) { sec = Math.max(0, Math.floor(sec)); return Math.floor(sec / 60) + ':' + ('0' + sec % 60).slice(-2); }
+  function startTimer(alreadyElapsed) {
+    if (!CALL || timerHandle) return;
+    timerStart = performance.now() - (alreadyElapsed || 0) * 1000;
+    var el = document.getElementById('call-timer');
+    timerHandle = setInterval(function () { el.textContent = fmt((performance.now() - timerStart) / 1000); }, 500);
+  }
+  function endCall(duration) {
+    if (!CALL) return;
+    clearInterval(timerHandle); timerHandle = null;
+    if (duration != null) document.getElementById('call-timer').textContent = fmt(duration);
+    document.getElementById('call-status-text').textContent = 'Call ended';
+    document.getElementById('live-dot').classList.add('ended');
+    document.getElementById('done-text').innerHTML = 'The call has ended. Click <b>Next</b> to see your result.';
+  }
+  function talking(on) {
+    if (!livePortrait) return;
+    livePortrait.classList.toggle('talking', on);
+    var st = document.getElementById('call-status-text');
+    if (st.textContent !== 'Call ended') st.textContent = on ? 'Jake is speaking…' : 'On call';
+  }
 
+  // ---------- messages ----------
   function hospitalRow() {
     var row = document.createElement('div');
     row.className = 'msg hospital ' + ICON_KIND;
@@ -81,7 +135,6 @@
     row.appendChild(icon);
     return row;
   }
-
   function bubble(actor, text) {
     var row;
     if (actor === 'hospital') { row = hospitalRow(); }
@@ -93,7 +146,6 @@
     log.appendChild(row);
     log.scrollTop = log.scrollHeight;
   }
-
   function typingIndicator() {
     var row = hospitalRow();
     var t = document.createElement('div');
@@ -104,15 +156,14 @@
     log.scrollTop = log.scrollHeight;
     return row;
   }
-
   function setEnabled(on) {
     [input, btnCounter, btnAccept, btnAcceptFinal, btnDecline].forEach(function (el) { el.disabled = !on; });
   }
-
   function refreshControls() {
     if (state.status === 'accepted' || state.status === 'declined') {
       controls.classList.add('hidden');
       doneRow.classList.remove('hidden');
+      endCall(state.ended_elapsed);
       return;
     }
     var label = 'Accept ' + state.current_offer_fmt;
@@ -125,16 +176,17 @@
     shownAt = performance.now();
     if (!state.is_final) { input.value = ''; input.focus(); }
   }
-
-  // Show new messages: participant bubbles at once, hospital bubbles after a typing pause.
+  // participant bubbles appear at once; hospital bubbles after a "typing/talking" pause
   function renderNew(messages, animate, done) {
     if (rendered >= messages.length) { done(); return; }
     var m = messages[rendered];
     rendered += 1;
     if (m.actor === 'hospital' && animate) {
       var t = typingIndicator();
+      talking(true);
       setTimeout(function () {
         t.remove();
+        talking(false);
         bubble(m.actor, m.text);
         renderNew(messages, animate, done);
       }, TYPING_MS);
@@ -144,21 +196,27 @@
     }
   }
 
+  // ---------- server messages ----------
   window.liveRecv = function (data) {
     waiting = false;
-    if (data.error) {
-      errBox.textContent = data.error;
-      setEnabled(true);
-      return;
-    }
+    if (data.error) { errBox.textContent = data.error; setEnabled(true); return; }
     errBox.textContent = '';
     state = data;
+
+    if (CALL && state.status === 'not_started') {         // phone is ringing
+      document.getElementById('incoming').classList.remove('hidden');
+      return;
+    }
+    if (CALL) {
+      document.getElementById('incoming').classList.add('hidden');
+      card.classList.remove('hidden');
+      if (state.status === 'in_progress') startTimer(state.elapsed);
+    }
     setEnabled(false);
     renderNew(data.messages, data.animate, refreshControls);
   };
 
   function rt() { return shownAt ? (performance.now() - shownAt) / 1000 : null; }
-
   function send(payload) {
     if (waiting) return;
     waiting = true;
@@ -179,11 +237,16 @@
   btnAcceptFinal.addEventListener('click', function () { send({type: 'accept'}); });
   btnDecline.addEventListener('click', function () { send({type: 'decline'}); });
 
-  // Enter in the amount box sends the counteroffer instead of submitting the page
+  if (CALL) {
+    document.getElementById('btn-answer').addEventListener('click', function () {
+      this.disabled = true;
+      liveSend({type: 'init', answer_sec: (performance.now() - pageLoadedAt) / 1000});
+    });
+  }
+
   input.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); btnCounter.click(); }
   });
-  // block accidental page submission while negotiating
   document.getElementById('form').addEventListener('submit', function (e) {
     if (!state || state.status === 'in_progress' || state.status === 'not_started') e.preventDefault();
   });
@@ -195,7 +258,10 @@
     billToggle.setAttribute('aria-expanded', open);
   });
 
-  document.addEventListener('DOMContentLoaded', function () { liveSend({type: 'init'}); });
+  document.addEventListener('DOMContentLoaded', function () {
+    // named: ask for the current state first (ring if not answered yet); anonymous: start right away
+    liveSend({type: CALL ? 'peek' : 'init'});
+  });
 })();
 </script>
 {{ endblock }}

@@ -117,3 +117,51 @@ body { color: var(--ink); background: #fff; }
 }
 /* Billing system: plain notice, no tail */
 .msg.hospital.text .bubble { border-radius: 6px; border-left: 3px solid #4f6d8f; }
+
+/* ===== Jake portrait (illustrated) ===== */
+.portrait-wrap { border-radius: 50%; overflow: hidden; background: #cfe3f5; }
+.portrait-wrap svg { width: 100%; height: 100%; display: block; }
+.avatar.portrait-wrap { width: 52px; height: 52px; }
+.jake-portrait .mouth-open { display: none; }
+.talking .jake-portrait .mouth-closed { display: none; }
+.talking .jake-portrait .mouth-open { display: inline; animation: talk .22s infinite alternate; transform-box: fill-box; transform-origin: center top; }
+@keyframes talk { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
+.jake-portrait .eyes { animation: blinkeyes 4.5s infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes blinkeyes { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+
+/* ===== Incoming call screen ===== */
+.incoming {
+  max-width: 380px; margin: 10px auto; padding: 34px 20px 30px; text-align: center; color: #fff;
+  border-radius: 28px; background: linear-gradient(180deg, #16324f 0%, #0d1f33 100%);
+  box-shadow: 0 10px 30px rgba(13,31,51,.35);
+}
+.incoming-label { font-size: .9rem; letter-spacing: .08em; text-transform: uppercase; color: #9fc2e6; margin-bottom: 22px; }
+.ring-wrap { position: relative; width: 150px; height: 150px; margin: 0 auto 18px; }
+.ring-wrap .portrait-wrap.big { position: absolute; inset: 0; border: 4px solid rgba(255,255,255,.85); }
+.ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #6fb1ef; animation: ringpulse 1.8s ease-out infinite; }
+.ring.r2 { animation-delay: .9s; }
+@keyframes ringpulse { from { transform: scale(1); opacity: .9; } to { transform: scale(1.55); opacity: 0; } }
+.incoming-name { font-size: 1.6rem; font-weight: 600; }
+.incoming-sub { color: #b9cde2; font-size: .92rem; margin-top: 4px; line-height: 1.4; }
+.answer-btn {
+  margin-top: 30px; width: 70px; height: 70px; border-radius: 50%; border: none; background: #22a55a;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  box-shadow: 0 0 0 0 rgba(34,165,90,.6); animation: answerpulse 1.4s infinite;
+}
+.answer-btn:disabled { opacity: .6; animation: none; }
+@keyframes answerpulse { 0% { box-shadow: 0 0 0 0 rgba(34,165,90,.6); } 100% { box-shadow: 0 0 0 18px rgba(34,165,90,0); } }
+.answer-label { margin-top: 8px; font-size: .9rem; color: #cfe0f1; }
+
+/* ===== In-call view ===== */
+.call-header {
+  display: flex; gap: 16px; align-items: center; padding: 16px 18px; color: #fff;
+  background: linear-gradient(90deg, #16324f, #1d5c96);
+}
+.call-portrait { width: 84px; height: 84px; flex: none; border: 3px solid rgba(255,255,255,.85); }
+.call-name { font-size: 1.25rem; font-weight: 600; line-height: 1.2; }
+.call-sub { color: #cfe0f1; font-size: .88rem; }
+.call-status { margin-top: 6px; font-size: .88rem; color: #e3eef8; font-variant-numeric: tabular-nums; }
+.live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #3ddc84; margin-right: 6px; animation: blink 1.4s infinite; }
+.live-dot.ended { background: #e5484d; animation: none; }
+.msg-icon.person { width: 38px; height: 38px; background: transparent; }
+.msg-icon.person .portrait-wrap { width: 38px; height: 38px; }
