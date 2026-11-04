@@ -29,7 +29,7 @@ COUNTERPART = {
     'anonymous': {
         'display_name': 'Billing Department',
         'subtitle': '{hospital}',
-        'icon': 'hospital',
+        'icon': 'text',
         'signoff': None,
         'intro_heading': 'You will be contacting the Billing Department',
         'intro_text': (

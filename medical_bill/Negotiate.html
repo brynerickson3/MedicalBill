@@ -36,6 +36,8 @@
   </div>
 </div>
 
+<template id="msg-icon-template">{{ if cp_icon == 'person' }}<svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="4.2" fill="#6b7a8c"/><path d="M3.8 21c.6-4.4 4-7.2 8.2-7.2s7.6 2.8 8.2 7.2z" fill="#6b7a8c"/></svg>{{ else }}<svg viewBox="0 0 24 24"><rect x="4" y="2.5" width="16" height="19" rx="2.5" fill="#4f6d8f"/><rect x="7.5" y="7" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="11" width="9" height="1.8" rx=".9" fill="#fff"/><rect x="7.5" y="15" width="6" height="1.8" rx=".9" fill="#fff"/></svg>{{ endif }}</template>
+
 <div class="bill-widget">
   <div class="panel hidden" id="bill-panel">{{ include_sibling 'BillTable.html' }}</div>
   <button type="button" class="toggle" id="bill-toggle" aria-expanded="false">
@@ -67,9 +69,23 @@
   var shownAt = null;     // when the current offer became answerable
   var waiting = false;
 
-  function bubble(actor, text) {
+  var ICON_KIND = js_vars.icon;  // 'person' (Jake) or 'text' (billing system)
+  var ICON_HTML = document.getElementById('msg-icon-template').innerHTML;
+
+  function hospitalRow() {
     var row = document.createElement('div');
-    row.className = 'msg ' + actor;
+    row.className = 'msg hospital ' + ICON_KIND;
+    var icon = document.createElement('div');
+    icon.className = 'msg-icon ' + ICON_KIND;
+    icon.innerHTML = ICON_HTML;
+    row.appendChild(icon);
+    return row;
+  }
+
+  function bubble(actor, text) {
+    var row;
+    if (actor === 'hospital') { row = hospitalRow(); }
+    else { row = document.createElement('div'); row.className = 'msg ' + actor; }
     var b = document.createElement('div');
     b.className = 'bubble';
     b.textContent = text;
@@ -79,9 +95,11 @@
   }
 
   function typingIndicator() {
-    var row = document.createElement('div');
-    row.className = 'msg hospital';
-    row.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+    var row = hospitalRow();
+    var t = document.createElement('div');
+    t.className = 'typing';
+    t.innerHTML = '<span></span><span></span><span></span>';
+    row.appendChild(t);
     log.appendChild(row);
     log.scrollTop = log.scrollHeight;
     return row;

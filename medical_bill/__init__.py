@@ -666,6 +666,7 @@ class Negotiate(StudyPage):
     def js_vars(player: Player):
         return dict(
             condition=player.condition,
+            icon=COUNTERPART[player.condition]['icon'],
             typing_delay_ms=int(cfg(player, 'typing_delay_ms', 2200)),
         )
 

@@ -57,7 +57,7 @@ body { color: var(--ink); background: #fff; }
 /* counterpart avatars */
 .avatar { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; }
 .avatar.person { background: #dfe6ee; }
-.avatar.hospital { background: #e7eef7; border-radius: 10px; }
+.avatar.text { background: #e7eef7; border-radius: 10px; }
 .avatar svg { width: 30px; height: 30px; }
 
 /* chat */
@@ -102,3 +102,18 @@ body { color: var(--ink); background: #fff; }
 .outcome-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 16px 0; }
 .outcome-grid > div { background: var(--soft); border-radius: 10px; padding: 14px; }
 .outcome-grid .label { color: var(--muted); font-size: .85rem; }
+
+/* message rows with an icon beside each hospital message */
+.msg.hospital { align-items: flex-end; gap: 8px; }
+.msg-icon { width: 34px; height: 34px; flex: none; display: flex; align-items: center; justify-content: center; }
+.msg-icon svg { width: 24px; height: 24px; }
+.msg-icon.person { border-radius: 50%; background: #dfe6ee; }
+.msg-icon.text { border-radius: 8px; background: #e7eef7; }
+/* Jake: speech bubble with a tail pointing at his icon */
+.msg.hospital.person .bubble { position: relative; border-radius: 16px; border-bottom-left-radius: 16px; }
+.msg.hospital.person .bubble::before {
+  content: ""; position: absolute; left: -7px; bottom: 10px; width: 12px; height: 12px;
+  background: #fff; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: rotate(45deg);
+}
+/* Billing system: plain notice, no tail */
+.msg.hospital.text .bubble { border-radius: 6px; border-left: 3px solid #4f6d8f; }
